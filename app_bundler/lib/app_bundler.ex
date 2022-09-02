@@ -13,9 +13,9 @@ defmodule AppBundler do
 
   def target do
     case :erlang.system_info(:system_architecture) do
-      'x86_64-apple-' ++ _ -> "macos-x86_64"
-      'aarch64-apple-' ++ _ -> "macos-aarch64"
-      'win32' -> "windows-x86_64"
+      ~c"x86_64-apple-" ++ _ -> "macos-x86_64"
+      ~c"aarch64-apple-" ++ _ -> "macos-aarch64"
+      ~c"win32" -> "windows-x86_64"
     end
   end
 
@@ -24,6 +24,27 @@ defmodule AppBundler do
       {:unix, :darwin} -> :macos
       {:win32, _} -> :windows
     end
+  end
+
+  def init_wx do
+    unless Code.ensure_loaded?(:wx) do
+      require Logger
+
+      Logger.error("""
+      init_wx/0 requires the :wx application, please add it in your mix.exs:
+
+          def application do
+            [
+              extra_applications: [:wx]
+            ]
+          end
+      """)
+
+      raise "missing wx"
+    end
+
+    init()
+    {:ok, _} = Supervisor.start_child(AppBundler.Supervisor, AppBundler.WxSubscriber)
   end
 
   def init do
@@ -41,11 +62,15 @@ defmodule AppBundler do
   end
 
   def __rpc__("open_app") do
-    dispatch(:open_app)
+    __dispatch__(:open_app)
+  end
+
+  def __rpc__("reopen_app") do
+    __dispatch__(:reopen_app)
   end
 
   def __rpc__("open_url:" <> url) do
-    dispatch({:open_url, url})
+    __dispatch__({:open_url, url})
   end
 
   def __rpc__("open_file:" <> path) do
@@ -56,10 +81,10 @@ defmodule AppBundler do
         path
       end
 
-    dispatch({:open_file, path})
+    __dispatch__({:open_file, path})
   end
 
-  defp dispatch(message) do
+  def __dispatch__(message) do
     Registry.dispatch(AppBundler.Registry, "app_event_subscribers", fn entries ->
       for {pid, _} <- entries, do: send(pid, message)
     end)

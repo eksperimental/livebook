@@ -16,16 +16,16 @@ Module Launcher
      Dim root = My.Application.Info.DirectoryPath
      Dim script = root & "\rel\bin\<%= @release.name %>.bat"
 
+<%= if additional_paths != "" do %>
+    Environment.SetEnvironmentVariable("PATH", <%= additional_paths%>Environment.GetEnvironmentVariable("PATH"))
+<% end %>
+
      Dim input as String
      If args.count > 0 Then
        input = args(0)
      Else
-       input = "open_app"
+       input = "reopen_app"
      End If
-
-<%= if additional_paths != "" do %>
-    Environment.SetEnvironmentVariable("PATH", <%= additional_paths%>Environment.GetEnvironmentVariable("PATH"))
-<% end %>
 
      ' try release rpc, if release is down, this will fail but that's ok.
      Dim rpcProc = new System.Diagnostics.Process()
@@ -35,6 +35,10 @@ Module Launcher
      rpcProc.StartInfo.CreateNoWindow = true
      rpcProc.Start()
      rpcProc.WaitForExit()
+
+     If args.count = 0 Then
+       input = "open_app"
+     End If
 
      ' rpc failed which usually means the release is down, let's start it
      If rpcProc.ExitCode <> 0 Then

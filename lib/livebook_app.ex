@@ -18,9 +18,9 @@ if Mix.target() == :app do
 
     @impl true
     def init(_) do
-      AppBundler.init()
-      os = AppBundler.os()
       :wx.new()
+      AppBundler.init_wx()
+      os = AppBundler.os()
 
       # TODO: instead of embedding the icon and copying to tmp, copy the file known location.
       # It's a bit tricky because it needs to support all the ways of running the app:
@@ -51,6 +51,12 @@ if Mix.target() == :app do
 
     @impl true
     def handle_info(:open_app, state) do
+      open_browser()
+      {:noreply, state}
+    end
+
+    @impl true
+    def handle_info(:reopen_app, state) do
       open_browser()
       {:noreply, state}
     end

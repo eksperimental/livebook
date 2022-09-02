@@ -4,15 +4,14 @@ set -e pipefail
 main() {
   export MAKEFLAGS=-j$(getconf _NPROCESSORS_ONLN)
 
-  wxwidgets_repo="${wxwidgets_repo:-wxWidgets/wxWidgets}"
-  wxwidgets_ref="${wxwidgets_ref:-v3.1.7}"
-  otp_repo="${otp_repo:-wojtekmach/otp}"
-  otp_ref="${otp_ref:-wm-WX_MACOS_NON_GUI_APP}"
+  wxwidgets_repo="${wxwidgets_repo:-wojtekmach/wxWidgets}"
+  wxwidgets_ref="${wxwidgets_ref:-wm-jv-mac-activation}"
+  otp_repo="${otp_repo:-erlang/otp}"
+  otp_ref="${otp_ref:-OTP-25.0.4}"
 
   mkdir -p tmp/cache
 
   openssl_dir=$(brew --prefix openssl@1.1)
-
   otp_dir="$PWD/tmp/cache/${otp_repo}-${otp_ref}"
   if [ ! -d $otp_dir ]; then
     wxwidgets_dir="$PWD/tmp/cache/${wxwidgets_repo}-${wxwidgets_ref}"
